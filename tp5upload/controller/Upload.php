@@ -1,29 +1,51 @@
 <?php
 namespace app\index\controller;
 
-use think\Controller;
+use think\Controller; 
 
-class Upload extends Controller
-{
-	public function index()
+class Index extends Controller{
+
+    public function index()
+    {
+	  return  $this->fetch();
+   }
+public function do_add()
 	{
-		return $this->fetch();
-	}
-	public function upload()
-	{
-		//获取表单上传文件 
-	    $file = request()->file('file'); 
-	    if (empty($file)) { 
-	      $this->error('请选择上传文件'); 
-	    } 
-	    //移动到框架应用根目录/public/uploads/ 目录下 
-	    $info = $file->move(ROOT_PATH . 'public' . DS . 'uploads'); 
-	    if ($info) { 
-	      $this->success('文件上传成功'); 
-	      echo $info->getFilename(); 
-	    } else { 
-	      //上传失败获取错误信息 
-	      $this->error($file->getError()); 
-	    }  
-	}
+	
+    $data=input('post.');
+	$file=request()->file('photo');//获取值
+	$fileinfo=$file->move(config('upload_path'));
+    $data['photo']= $fileinfo->getsavename();//获取图片路径
+	$data['inputtime']=time();    ，，，，，，，，，，，，，，当前时间
+	$table=db('wangwang');
+	$info=$table->insert($data);
+	if($info)
+		{
+	return	$this->success('成功');
+	    }else{
+	return	$this->error('失败');
+		}
+    }
+   public function userlist()
+	   {
+	   $table=db('wangwang');
+	   $list=$table->paginate(config('paginate.list_rows'));
+	   $this->assign('userlist',$list);
+	   $this->assign('img_path',config('upload_path'));     ，，，，，，，，，，，，图片路径
+	   $this->assign('page',$list->render());
+       return $this->fetch();
+       }
+	   public function deluser()
+		   {
+		   $id=input('id');
+		   $table=db('wangwang');
+		   $info=$table->where('id='.$id)->delete();
+		   if($info)
+			   {
+			  $this->success('删除成功');
+		       }else{
+			   $this->error('删除失败');
+			   }
+
+	       }
 }
